@@ -4,12 +4,15 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 from pandas.api.types import is_string_dtype
 from pandas.api.types import is_numeric_dtype
-
+import math
+import numpy as np
 
 """
 Preprocesses input dataset
@@ -27,21 +30,24 @@ def data_preprocessing(dataset):
             # Combine the One-Hot Encoding Dataframe to our new dataframe to the new_dataframe 
             new_dataframe = pd.concat([new_dataframe, dummies],axis=1)
         else: 
-            # Find the maximum value in column 'x'
-            max_value = max(dataset[x])
-            # Find the minimum value in column 'x'
-            min_value = min(dataset[x])
-            # Check if the column being evaluated is the label column. If so, just add it right into the dataframe
-            if x =='label':
-                new_dataframe = pd.concat([new_dataframe, dataset[x]], axis=1)
-                continue
-            # Ensure we don't run into a zero division error when normalizing all the values
-            elif (max_value - min_value) != 0:
-                # Apply net value formula to every value in pandas dataframe
-                dataset[x] = dataset[x].apply(lambda y: (y - min_value)/(max_value - min_value))
-                # Combine New column to our new_dataframe
-                new_dataframe = pd.concat([new_dataframe, dataset[x]],axis=1)
+            # If the column 'x' is a Numerical Data, then just add it to the new_dataframe
+            new_dataframe[x] = dataset[x]
     return new_dataframe
+    #         # Find the maximum value in column 'x'
+    #         max_value = max(dataset[x])
+    #         # Find the minimum value in column 'x'
+    #         min_value = min(dataset[x])
+    #         # Check if the column being evaluated is the label column. If so, just add it right into the dataframe
+    #         if x =='label':
+    #             new_dataframe = pd.concat([new_dataframe, dataset[x]], axis=1)
+    #             continue
+    #         # Ensure we don't run into a zero division error when normalizing all the values
+    #         elif (max_value - min_value) != 0:
+    #             # Apply net value formula to every value in pandas dataframe
+    #             dataset[x] = dataset[x].apply(lambda y: (y - min_value)/(max_value - min_value))
+    #             # Combine New column to our new_dataframe
+    #             new_dataframe = pd.concat([new_dataframe, dataset[x]],axis=1)
+    # return new_dataframe
 
 """
 Function to run an input dataset on Decision Tree Classifier
@@ -62,6 +68,7 @@ def run_decision_tree_classifier(X_train, X_test, y_train, y_test):
 
     # Print the confusion matrix of the classifier
     cm = confusion_matrix(y_test, y_pred)
+
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
     return cm_df, accuracy
@@ -72,7 +79,7 @@ Function to run an input dataset on Neural Network Classifier
 
 def run_neural_network_classifier(X_train, X_test, y_train, y_test):
     # Create a decision tree classifier
-    clf = MLPClassifier(max_iter=5000, random_state=randomSeed)
+    clf = MLPClassifier(max_iter=1000, random_state=randomSeed)
 
      # Train the classifier
     clf = clf.fit(X_train, y_train)
@@ -85,6 +92,69 @@ def run_neural_network_classifier(X_train, X_test, y_train, y_test):
 
     # Print the confusion matrix of the classifier
     cm = confusion_matrix(y_test, y_pred)
+
+    # Make confusion matrix pandas dataframe
+    cm_df = pd.DataFrame(cm)
+    return cm_df, accuracy
+
+"""
+Calculate confidence interval for a given accuracy
+"""
+def calculate_confidence_interval(accuracy, test_set_size, number_of_comparisons):
+    # Assign Z value using Bonferroni Correction
+    if number_of_comparisons < 3: 
+        z_value = 1.96
+    elif number_of_comparisons == 3:
+        z_value = 2.24
+    else: 
+        z_value = 2.39
+    # Calculate the confidence interval
+    internal = (z_value * math.sqrt((accuracy * (1-accuracy))/(test_set_size)))
+    confidence_interval_array =  [accuracy - internal, accuracy + internal] 
+    return confidence_interval_array
+
+"""
+Function to run an input dataset on Random Forest Classifier
+"""
+def run_random_forest_classifier(X_train, X_test, y_train, y_test):
+    # Create a decision tree classifier
+    clf = RandomForestClassifier(n_estimators=100, criterion ='entropy', random_state=randomSeed)
+
+     # Train the classifier
+    clf = clf.fit(X_train, y_train)
+
+    # Predict the labels of the testing set
+    y_pred = clf.predict(X_test)
+
+    # Calculate the accuracy of the classifier
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # Print the confusion matrix of the classifier
+    cm = confusion_matrix(y_test, y_pred)
+
+    # Make confusion matrix pandas dataframe
+    cm_df = pd.DataFrame(cm)
+    return cm_df, accuracy
+
+"""
+Function to run an input dataset on naive bayes classifier
+"""
+def run_naive_bayes_classifier(X_train, X_test, y_train, y_test):
+    # Create a decision tree classifier
+    clf = MultinomialNB()
+
+     # Train the classifier
+    clf = clf.fit(X_train, y_train)
+
+    # Predict the labels of the testing set
+    y_pred = clf.predict(X_test)
+
+    # Calculate the accuracy of the classifier
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # Print the confusion matrix of the classifier
+    cm = confusion_matrix(y_test, y_pred)
+
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
     return cm_df, accuracy
@@ -98,7 +168,7 @@ try:
     randomSeed = int(sys.argv[1])
 
     # Get dataset file path from command line
-    dataset = ["monks1.csv"]#,"votes.csv"]
+    dataset = ["monks1.csv"]#,"votes.csv", "hypothyroid.csv", "mnist_1000.csv"]
 
     # Set size of training set
     training_set_size = 0.6
@@ -106,49 +176,78 @@ try:
 
     # Run decision tree classifier for each dataset in the list
     for input_dataSet in dataset:
+        print(f"Current Dataset: {input_dataSet}")
         # Read dataset into a pandas dataframe
         df = pd.read_csv(input_dataSet)
             # Get the target column
-    label_col = df.iloc[:,:1]
+        label_col = df.iloc[:,:1]
 
-    # Get the features
-    features = df.iloc[:,1:]
+        # Get the features
+        features = df.iloc[:,1:]
 
-    # Preprocess the dataset with one hot encoding
-    cleaned_features = data_preprocessing(features)
+        # Preprocess the dataset with one hot encoding
+        cleaned_features = data_preprocessing(features)
 
-    # Combine the target column with the features
-    df = pd.concat([label_col, cleaned_features], axis=1)
+        # Combine the target column with the features
+        df = pd.concat([label_col, cleaned_features], axis=1)
 
-    # Shuffle the dataset and split into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(cleaned_features, label_col, test_size=training_set_size, random_state=randomSeed)
+        # Shuffle the dataset and split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(cleaned_features, label_col, test_size=training_set_size, random_state=randomSeed)
 
-    # Flatten the target columns into a 1D array. Prevents a DataConversionWarning warning from being thrown
-    y_train = y_train.values.ravel()
-    y_test = y_test.values.ravel()
+        # Flatten the target columns into a 1D array. Prevents a DataConversionWarning warning from being thrown
+        y_train = y_train.values.ravel()
+        y_test = y_test.values.ravel()
 
-    # Run decision tree classifier
-    cm_df, accuracy = run_decision_tree_classifier(X_train, X_test, y_train, y_test)
+# Decision Tree Classifier
+        # Run decision tree classifier
+        cm_df, accuracy = run_decision_tree_classifier(X_train, X_test, y_train, y_test)
 
-    # Structure name of file
-    filename = f"results-DecisionTree-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
+        # Structure name of file
+        filename = f"results/results-DecisionTree-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
 
-    # Save to file
-    cm_df.to_csv(filename)
+        # Save to file
+        cm_df.to_csv(filename)
 
-    print(f"File: {input_dataSet}\nModel: Decision Tree\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\n")
+        # Calculate Confidence Interval
+        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 4)
 
-    # Run neaural network classifier
-    cm_df, accuracy = run_neural_network_classifier(X_train, X_test, y_train, y_test)
+        print(f"File: {input_dataSet}\nModel: Decision Tree\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}\n")
 
-    # Structure name of file
-    filename = f"results-NeauralNetwork-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
+# Neural Network Classifier
+        # Run neaural network classifier
+        cm_df, accuracy = run_neural_network_classifier(X_train, X_test, y_train, y_test)
 
-    # Save to file
-    cm_df.to_csv(filename)
+        # Structure name of file
+        filename = f"results/results-NeauralNetwork-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
 
-    print(f"File: {input_dataSet}\nModel: Neural Network\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\n")
+        # Save to file
+        cm_df.to_csv(filename)
 
+        print(f"File: {input_dataSet}\nModel: Neural Network\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\n")
+# Random Forest Classifier
+        # Run random forest classifier
+        cm_df, accuracy = run_random_forest_classifier(X_train, X_test, y_train, y_test)
+
+        # Structure name of file
+        filename = f"results/results-RandomForest-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
+
+        # Save to file
+        cm_df.to_csv(filename)
+
+        print(f"File: {input_dataSet}\nModel: Random Forest\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\n")
+# Naive Bayes Classifier
+        # Run naive bayes classifier   
+        cm_df, accuracy = run_naive_bayes_classifier(X_train, X_test, y_train, y_test)
+        
+        # Structure name of file
+        filename = f"results/results-NaiveBayes-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
+
+        # Save to file
+        cm_df.to_csv(filename)
+
+        print(f"File: {input_dataSet}\nModel: Naive Bayes\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\n")
+
+        print("---" * 20)
 
 
 except IndexError as e:
