@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import recall_score
 import pandas as pd
 from pandas.api.types import is_string_dtype
 from pandas.api.types import is_numeric_dtype
@@ -56,12 +57,15 @@ def run_decision_tree_classifier(X_train, X_test, y_train, y_test):
 
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
-    return cm_df, accuracy
+
+    # Calculate the recall of the classifier
+    recall = list(recall_score(y_test, y_pred, labels=label_list, average=None))
+
+    return cm_df, accuracy, recall
 
 """
 Function to run an input dataset on Neural Network Classifier
 """
-
 def run_neural_network_classifier(X_train, X_test, y_train, y_test):
     # Create a decision tree classifier
     clf = MLPClassifier(max_iter=1000, random_state=randomSeed)
@@ -80,23 +84,11 @@ def run_neural_network_classifier(X_train, X_test, y_train, y_test):
 
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
-    return cm_df, accuracy
 
-"""
-Calculate confidence interval for a given accuracy
-"""
-def calculate_confidence_interval(accuracy, test_set_size, number_of_comparisons):
-    # Assign Z value using Bonferroni Correction
-    if number_of_comparisons < 3: 
-        z_value = 1.96
-    elif number_of_comparisons == 3:
-        z_value = 2.24
-    else: 
-        z_value = 2.39
-    # Calculate the confidence interval
-    internal = (z_value * math.sqrt((accuracy * (1-accuracy))/(test_set_size)))
-    confidence_interval_array =  [accuracy - internal, accuracy + internal] 
-    return confidence_interval_array
+    # Calculate the recall of the classifier
+    recall = list(recall_score(y_test, y_pred, labels=label_list, average=None))
+
+    return cm_df, accuracy, recall
 
 """
 Function to run an input dataset on Random Forest Classifier
@@ -119,7 +111,11 @@ def run_random_forest_classifier(X_train, X_test, y_train, y_test):
 
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
-    return cm_df, accuracy
+
+    # Calculate the recall of the classifier
+    recall = list(recall_score(y_test, y_pred, labels=label_list, average=None))
+
+    return cm_df, accuracy, recall
 
 """
 Function to run an input dataset on naive bayes classifier
@@ -142,12 +138,31 @@ def run_naive_bayes_classifier(X_train, X_test, y_train, y_test):
 
     # Make confusion matrix pandas dataframe
     cm_df = pd.DataFrame(cm)
-    return cm_df, accuracy
+
+    # Calculate the recall of the classifier
+    recall = list(recall_score(y_test, y_pred, labels=label_list, average=None))
+
+    return cm_df, accuracy, recall
+
+"""
+Calculate confidence interval for a given accuracy
+"""
+def calculate_confidence_interval(accuracy, test_set_size, number_of_comparisons):
+    # Assign Z value using Bonferroni Correction
+    if number_of_comparisons < 3: 
+        z_value = 1.96
+    elif number_of_comparisons == 3:
+        z_value = 2.24
+    else: 
+        z_value = 2.39
+    # Calculate the confidence interval
+    internal = (z_value * math.sqrt((accuracy * (1-accuracy))/(test_set_size)))
+    confidence_interval_array =  [accuracy - internal, accuracy + internal] 
+    return confidence_interval_array
 
 """
 Main part of the program
 """
-
 try: 
     # Get random seed from command line
     randomSeed = int(sys.argv[1])
@@ -182,9 +197,12 @@ try:
         y_train = y_train.values.ravel()
         y_test = y_test.values.ravel()
 
+        # Get the unique labels in the target column
+        label_list = np.unique(y_test)
+
 # Decision Tree Classifier
         # Run decision tree classifier
-        cm_df, accuracy = run_decision_tree_classifier(X_train, X_test, y_train, y_test)
+        cm_df, accuracy, recall = run_decision_tree_classifier(X_train, X_test, y_train, y_test)
 
         # Structure name of file
         filename = f"results/results-DecisionTree-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
@@ -196,11 +214,16 @@ try:
         confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
 
         # Print results
-        print(f"File: {input_dataSet}\nModel: Decision Tree\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}\n")
+        print(f"File: {input_dataSet}\nModel: Decision Tree\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
+        count = 0
+        for label in label_list:
+            print(f"Label '{label}' Recall: {recall[count]}")
+            count += 1
+        print()
 
 # Neural Network Classifier
         # Run neaural network classifier
-        cm_df, accuracy = run_neural_network_classifier(X_train, X_test, y_train, y_test)
+        cm_df, accuracy, recall = run_neural_network_classifier(X_train, X_test, y_train, y_test)
 
         # Structure name of file
         filename = f"results/results-NeauralNetwork-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
@@ -212,11 +235,16 @@ try:
         confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
 
         # Print results
-        print(f"File: {input_dataSet}\nModel: Neural Network\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}\n")
+        print(f"File: {input_dataSet}\nModel: Neural Network\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
+        count = 0
+        for label in label_list:
+            print(f"Label '{label}' Recall: {recall[count]}")
+            count += 1
+        print()
 
 # Random Forest Classifier
         # Run random forest classifier
-        cm_df, accuracy = run_random_forest_classifier(X_train, X_test, y_train, y_test)
+        cm_df, accuracy, recall = run_random_forest_classifier(X_train, X_test, y_train, y_test)
 
         # Structure name of file
         filename = f"results/results-RandomForest-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
@@ -228,11 +256,16 @@ try:
         confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
 
         # Print results
-        print(f"File: {input_dataSet}\nModel: Random Forest\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}\n")
-        
+        print(f"File: {input_dataSet}\nModel: Random Forest\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
+        count = 0
+        for label in label_list:
+            print(f"Label '{label}' Recall: {recall[count]}")
+            count += 1
+        print()
+
 # Naive Bayes Classifier
         # Run naive bayes classifier   
-        cm_df, accuracy = run_naive_bayes_classifier(X_train, X_test, y_train, y_test)
+        cm_df, accuracy, recall = run_naive_bayes_classifier(X_train, X_test, y_train, y_test)
         
         # Structure name of file
         filename = f"results/results-NaiveBayes-{os.path.splitext(input_dataSet)[0]}-{randomSeed}.csv"
@@ -244,10 +277,14 @@ try:
         confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
 
         # Print results
-        print(f"File: {input_dataSet}\nModel: Naive Bayes\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}\n")
-
+        print(f"File: {input_dataSet}\nModel: Naive Bayes\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
+        count = 0
+        for label in label_list:
+            print(f"Label '{label}' Recall: {recall[count]}")
+            count += 1
+        print()
+  
         print("---" * 20)
-
 
 except IndexError as e:
     print(f"Error. Message below:\n{e}\nPlease correct and try again.")
