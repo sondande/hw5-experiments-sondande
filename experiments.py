@@ -32,7 +32,8 @@ def data_preprocessing(dataset):
             new_dataframe = pd.concat([new_dataframe, dummies],axis=1)
         else: 
             # If the column 'x' is a Numerical Data, then just add it to the new_dataframe
-            new_dataframe[x] = dataset[x]
+            
+            new_dataframe = pd.concat([new_dataframe, dataset[x]],axis=1)
     return new_dataframe
 
 """
@@ -41,7 +42,7 @@ Function to run an input dataset on Decision Tree Classifier
 def run_decision_tree_classifier(X_train, X_test, y_train, y_test):
 
     # Create a decision tree classifier
-    clf = tree.DecisionTreeClassifier(criterion='entropy', max_leaf_nodes=2,random_state=randomSeed)
+    clf = tree.DecisionTreeClassifier(criterion='entropy',random_state=randomSeed)
 
     # Train the classifier
     clf = clf.fit(X_train, y_train)
@@ -168,10 +169,10 @@ try:
     randomSeed = int(sys.argv[1])
 
     # Get dataset file path from command line
-    dataset = ["monks1.csv"]#,"votes.csv", "hypothyroid.csv", "mnist_1000.csv"]
+    dataset = ["monks1.csv","votes.csv", "hypothyroid.csv", "mnist_1000.csv"]
 
     # Set size of training set
-    training_set_size = 0.6
+    training_set_size = 0.8
 
     # Run decision tree classifier for each dataset in the list
     for input_dataSet in dataset:
@@ -211,7 +212,7 @@ try:
         cm_df.to_csv(filename)
 
         # Calculate Confidence Interval
-        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
+        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 4)
 
         # Print results
         print(f"File: {input_dataSet}\nModel: Decision Tree\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
@@ -232,7 +233,7 @@ try:
         cm_df.to_csv(filename)
 
         # Calculate Confidence Interval
-        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
+        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 4)
 
         # Print results
         print(f"File: {input_dataSet}\nModel: Neural Network\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
@@ -253,7 +254,7 @@ try:
         cm_df.to_csv(filename)
 
         # Calculate Confidence Interval
-        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
+        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 4)
 
         # Print results
         print(f"File: {input_dataSet}\nModel: Random Forest\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
@@ -274,7 +275,7 @@ try:
         cm_df.to_csv(filename)
 
         # Calculate Confidence Interval
-        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 3)
+        confidence_interval = calculate_confidence_interval(accuracy, len(y_test), 4)
 
         # Print results
         print(f"File: {input_dataSet}\nModel: Naive Bayes\nConfusion Matrix:\n{cm_df}\nAccuracy Score: {accuracy}\nConfidence Interval: {confidence_interval}")
