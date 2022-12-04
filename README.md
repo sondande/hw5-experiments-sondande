@@ -9,3 +9,22 @@ HW5: Experiments and Technical Writing
 3.	votes.csv: A data set describing the voting histories of members of the U.S. Congress.  The objective is to predict a member’s political party based on their previous votes.  All attributes are nominal, although some values are missing (indicated by a “?” character).  This data comes from Weka 3.8: http://www.cs.waikato.ac.nz/ml/weka/
 
 4.	hypothyroid.csv: A data set describing patient health data using a mix of nominal and continuous attributes that can be used to diagnose the health of a patient’s thyroid into four possible labels. This data set comes from Weka 3.8: http://www.cs.waikato.ac.nz/ml/weka/
+
+1) Who were the members of your group (so that I know who to give credit to!)
+
+Ada Ates & Sagana Ondande
+
+2) A short paragraph describing your experience during the assignment (what did you enjoy,
+what was difficult, etc.)
+
+Ada Ates~
+
+I enjoyed working on this lab as it gave a visualization of contrasts between the models we have learned and how they perform in varying datasets. I would say writing the report was difficult as creating tables and graphs that makes sense was a challenge.
+
+4) An estimation of how much time you spent on the assignment, and
+
+Around 15 hours? Hard to tell!
+
+5) An affirmation that you adhered to the honor code 
+
+We affirm that we have adhered to the Honor Code. Ada Ates & 
