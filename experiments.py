@@ -1,6 +1,5 @@
 import os
 import sys
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.neural_network import MLPClassifier
@@ -32,7 +31,6 @@ def data_preprocessing(dataset):
             new_dataframe = pd.concat([new_dataframe, dummies],axis=1)
         else: 
             # If the column 'x' is a Numerical Data, then just add it to the new_dataframe
-            
             new_dataframe = pd.concat([new_dataframe, dataset[x]],axis=1)
     return new_dataframe
 
