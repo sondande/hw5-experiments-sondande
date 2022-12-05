@@ -21,10 +21,14 @@ Ada Ates~
 
 I enjoyed working on this lab as it gave a visualization of contrasts between the models we have learned and how they perform in varying datasets. I would say writing the report was difficult as creating tables and graphs that makes sense was a challenge.
 
-4) An estimation of how much time you spent on the assignment, and
+Sagana Ondande~
+
+I enjoyed working on this lab from the experimental aspect of the problems. It gave a clear visiualization of the pros and cons of different models, and how they perform with datasets, a hands on approach of using external libraries and their precoded models and how to implement them. I would say the most difficult part of this lab was the technical report, but was informative and a good learning experience for our final project.
+
+1) An estimation of how much time you spent on the assignment, and
 
 Around 15 hours? Hard to tell!
 
 5) An affirmation that you adhered to the honor code 
 
-We affirm that we have adhered to the Honor Code. Ada Ates & 
+We affirm that we have adhered to the Honor Code. Ada Ates & Sagana Ondande
